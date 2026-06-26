@@ -2,9 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import { Package, Users, ShoppingCart, AlertTriangle, ArrowRight, TrendingUp, Database, ArrowUpRight } from 'lucide-react';
 
-function RevenueTrendChart({ orders }) {
+function RevenueTrendChart({ orders, loading }) {
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  
+  if (loading) {
+    return (
+      <div className="card chart-card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '330px' }}>
+        <div className="loader" style={{ scale: '1.2' }}></div>
+      </div>
+    );
+  }
   
   // Group orders by date (last 7 days, or last 7 orders)
   const sortedOrders = [...orders].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -223,8 +231,16 @@ function RevenueTrendChart({ orders }) {
   );
 }
 
-function InventoryDonutChart({ products }) {
+function InventoryDonutChart({ products, loading }) {
   const [hoveredIdx, setHoveredIdx] = useState(null);
+
+  if (loading) {
+    return (
+      <div className="card chart-card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '330px' }}>
+        <div className="loader" style={{ scale: '1.2' }}></div>
+      </div>
+    );
+  }
 
   const fullyStocked = products.filter(p => p.quantity >= 10).length;
   const lowStock = products.filter(p => p.quantity > 0 && p.quantity < 10).length;
@@ -358,13 +374,7 @@ export default function Dashboard({ products, customers, orders, loading, refres
   // Get recent 4 orders
   const recentOrders = orders.slice(0, 4);
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <div className="loader">Loading Dashboard...</div>
-      </div>
-    );
-  }
+  // Page-level loader removed to support card-level skeleton loading
 
   return (
     <div>
@@ -383,7 +393,13 @@ export default function Dashboard({ products, customers, orders, loading, refres
         <div className="card stat-card">
           <div className="stat-info">
             <h3>Total Products</h3>
-            <div className="stat-value">{products.length}</div>
+            <div className="stat-value">
+              {loading ? (
+                <div className="loader" style={{ scale: '0.7', transformOrigin: 'left center', margin: '0.25rem 0' }}></div>
+              ) : (
+                products.length
+              )}
+            </div>
           </div>
           <div className="stat-icon-wrapper primary">
             <Package size={24} />
@@ -393,7 +409,13 @@ export default function Dashboard({ products, customers, orders, loading, refres
         <div className="card stat-card">
           <div className="stat-info">
             <h3>Customers</h3>
-            <div className="stat-value">{customers.length}</div>
+            <div className="stat-value">
+              {loading ? (
+                <div className="loader" style={{ scale: '0.7', transformOrigin: 'left center', margin: '0.25rem 0' }}></div>
+              ) : (
+                customers.length
+              )}
+            </div>
           </div>
           <div className="stat-icon-wrapper success">
             <Users size={24} />
@@ -403,7 +425,13 @@ export default function Dashboard({ products, customers, orders, loading, refres
         <div className="card stat-card">
           <div className="stat-info">
             <h3>Orders Placed</h3>
-            <div className="stat-value">{orders.length}</div>
+            <div className="stat-value">
+              {loading ? (
+                <div className="loader" style={{ scale: '0.7', transformOrigin: 'left center', margin: '0.25rem 0' }}></div>
+              ) : (
+                orders.length
+              )}
+            </div>
           </div>
           <div className="stat-icon-wrapper info">
             <ShoppingCart size={24} />
@@ -413,8 +441,12 @@ export default function Dashboard({ products, customers, orders, loading, refres
         <div className="card stat-card">
           <div className="stat-info">
             <h3>Low Stock Alerts</h3>
-            <div className="stat-value" style={{ color: lowStockProducts.length > 0 ? 'var(--warning)' : 'var(--text-primary)' }}>
-              {lowStockProducts.length}
+            <div className="stat-value" style={{ color: !loading && lowStockProducts.length > 0 ? 'var(--warning)' : 'var(--text-primary)' }}>
+              {loading ? (
+                <div className="loader" style={{ scale: '0.7', transformOrigin: 'left center', margin: '0.25rem 0' }}></div>
+              ) : (
+                lowStockProducts.length
+              )}
             </div>
           </div>
           <div className="stat-icon-wrapper warning">
@@ -425,8 +457,8 @@ export default function Dashboard({ products, customers, orders, loading, refres
 
       {/* Interactive Analytics Charts */}
       <div className="charts-grid">
-        <RevenueTrendChart orders={orders} />
-        <InventoryDonutChart products={products} />
+        <RevenueTrendChart orders={orders} loading={loading} />
+        <InventoryDonutChart products={products} loading={loading} />
       </div>
 
       {/* Double Column Layout */}
@@ -438,7 +470,11 @@ export default function Dashboard({ products, customers, orders, loading, refres
             <h2>Recent Orders</h2>
           </div>
           
-          {recentOrders.length === 0 ? (
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4rem' }}>
+              <div className="loader" style={{ scale: '1.2' }}></div>
+            </div>
+          ) : recentOrders.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
               No orders placed yet. 
               <button 
@@ -506,7 +542,11 @@ export default function Dashboard({ products, customers, orders, loading, refres
             <h2>Critical Inventory</h2>
           </div>
 
-          {lowStockProducts.length === 0 ? (
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3.8rem' }}>
+              <div className="loader" style={{ scale: '1.2' }}></div>
+            </div>
+          ) : lowStockProducts.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--success)' }}>
               All products are fully stocked! Good job.
             </div>
