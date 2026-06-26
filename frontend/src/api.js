@@ -18,6 +18,11 @@ async function handleResponse(response) {
 }
 
 export const api = {
+  health: {
+    check: () => 
+      fetch(`${API_BASE_URL}/`).then(handleResponse),
+  },
+
   products: {
     getAll: () => 
       fetch(`${API_BASE_URL}/products`).then(handleResponse),
